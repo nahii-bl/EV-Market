@@ -152,6 +152,38 @@ const server = http.createServer(async (request, response) => {
         return;
     }
 
+    // DELETE endpoint to remove a request by ID
+    if (request.method === "DELETE" && url.pathname.startsWith("/api/requests/")) {
+        try {
+            const requestId = url.pathname.split("/").pop();
+            const requests = readRequests();
+            const initialLength = requests.length;
+            
+            const updatedRequests = requests.filter(req => req.id !== requestId);
+            
+            if (updatedRequests.length === initialLength) {
+                sendJson(response, 404, {
+                    ok: false,
+                    message: "Request not found."
+                });
+                return;
+            }
+            
+            saveRequests(updatedRequests);
+            
+            sendJson(response, 200, {
+                ok: true,
+                message: "Request deleted successfully."
+            });
+        } catch {
+            sendJson(response, 500, {
+                ok: false,
+                message: "Could not delete the request."
+            });
+        }
+        return;
+    }
+
     serveFile(response, url.pathname);
 });
 
