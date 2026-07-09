@@ -1,1 +1,11 @@
-C:\Users\mulus\OneDrive\Desktop\mikey EV\package.json
+{
+  "name": "ev-market",
+  "version": "1.0.0",
+  "description": "Mikey EV car market website",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo build complete"
+  },
+  "dependencies": {}
+}
