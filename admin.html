@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mikey EV Requests</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="site-header">
+        <a href="index.html#home" class="brand" aria-label="Mikey EV home">
+            <img src="auto-car-logo-template-vector-icon.webp" alt="">
+            <span>Mikey <strong>EV</strong></span>
+        </a>
+        <nav class="site-nav admin-nav" aria-label="Admin navigation">
+            <a href="index.html">Website</a>
+            <a href="index.html#contact">Contact</a>
+        </nav>
+    </header>
+
+    <main class="admin-page">
+        <section class="section">
+            <div class="section-heading">
+                <p class="eyebrow">Backend dashboard</p>
+                <h1>Customer Requests</h1>
+                <p class="hero-text">New form submissions from the Mikey EV website will appear here.</p>
+            </div>
+
+            <div class="requests-toolbar">
+                <button class="button primary" type="button" id="refreshRequests">Refresh</button>
+                <span id="requestCount">Loading...</span>
+            </div>
+
+            <div class="requests-list" id="requestsList"></div>
+        </section>
+    </main>
+
+    <script>
+        const list = document.querySelector("#requestsList");
+        const count = document.querySelector("#requestCount");
+        const refreshButton = document.querySelector("#refreshRequests");
+
+        function formatDate(value) {
+            return new Date(value).toLocaleString();
+        }
+
+        function renderRequests(requests) {
+            count.textContent = `${requests.length} request${requests.length === 1 ? "" : "s"}`;
+
+            if (!requests.length) {
+                list.innerHTML = '<article class="request-card"><p>No requests yet.</p></article>';
+                return;
+            }
+
+            list.innerHTML = requests.map((request) => `
+                <article class="request-card">
+                    <div>
+                        <h3>${request.name}</h3>
+                        <p>${formatDate(request.createdAt)}</p>
+                    </div>
+                    <dl>
+                        <div><dt>Phone</dt><dd><a href="tel:${request.phone}">${request.phone}</a></dd></div>
+                        <div><dt>Model</dt><dd>${request.model}</dd></div>
+                        <div><dt>Message</dt><dd>${request.message || "No message"}</dd></div>
+                    </dl>
+                </article>
+            `).join("");
+        }
+
+        async function loadRequests() {
+            try {
+                const response = await fetch("/api/requests");
+                const requests = await response.json();
+                renderRequests(requests);
+            } catch {
+                count.textContent = "Backend is not running";
+                list.innerHTML = '<article class="request-card"><p>Start the server to see requests.</p></article>';
+            }
+        }
+
+        refreshButton.addEventListener("click", loadRequests);
+        loadRequests();
+    </script>
+</body>
+</html>
