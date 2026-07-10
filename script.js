@@ -54,7 +54,14 @@ if (contactForm) {
         status.textContent = "";
 
         try {
-            const response = await fetch("/api/requests", {
+           const supabaseUrl = "https://ufzdbyrcflftpupqqzjg.supabase.co";
+
+const supabaseKey = "sb_publishable_8169Y0pYnw0LtF206Ra9OA_QEoTU5Cc";
+
+const supabase = window.supabase.createClient(
+  supabaseUrl,
+  supabaseKey
+);
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
