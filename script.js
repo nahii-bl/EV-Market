@@ -62,32 +62,19 @@ if (contactForm) {
         status.textContent = "";
 
         try {
-const { error } = await supabase
-    .from("customer_requests")
-    .insert([payload]);
+            const { error } = await supabase
+                .from("customer_requests")
+                .insert([payload]);
 
-if (error) {
-    throw error;
-}
-          method: "post",
-            header: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload) 
-          ]);
-
-          const result = await response.json();
-
-          if(!response.ok) {
-            throw new Error(result.message // "please try agin.");
-                            }
-              
+            if (error) {
+                throw error;
+            }
 
             status.textContent = "Request sent successfully. We will contact you soon.";
             button.textContent = "Request Sent";
             contactForm.reset();
         } catch (error) {
-            status.textContent = "Start the backend server first, then send again.";
+            status.textContent = "Error sending request. Please try again or call us directly at 0942377454.";
             button.textContent = originalText;
         } finally {
             setTimeout(() => {
