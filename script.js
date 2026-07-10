@@ -1,7 +1,3 @@
-// ==========================================
-// CLIENT REQUEST FORM (Talks to local Node Server)
-// ==========================================
-const contactForm = document.querySelector(".contact form");
 const navToggle = document.querySelector(".nav-toggle");
 const nav = document.querySelector(".site-nav");
 
