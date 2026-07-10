@@ -2,6 +2,42 @@
 // CLIENT REQUEST FORM (Talks to local Node Server)
 // ==========================================
 const contactForm = document.querySelector(".contact form");
+const navToggle = document.querySelector(".nav-toggle");
+const nav = document.querySelector(".site-nav");
+
+if (navToggle && nav) {
+    navToggle.addEventListener("click", () => {
+        const isOpen = nav.classList.toggle("is-open");
+        navToggle.setAttribute("aria-expanded", String(isOpen));
+    });
+
+    nav.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", () => {
+            nav.classList.remove("is-open");
+            navToggle.setAttribute("aria-expanded", "false");
+        });
+    });
+
+    window.addEventListener("scroll", () => {
+        if (nav.classList.contains("is-open")) {
+            nav.classList.remove("is-open");
+            navToggle.setAttribute("aria-expanded", "false");
+        }
+    });
+}
+
+const revealItems = document.querySelectorAll(".reveal");
+
+const revealObserver = new IntersectionObserver(
+    (entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("is-visible");
+                revealObserver.unobserve(entry.target);
+            }
+        });
+    },
+    { threshold: 0.18 }
 
 if (contactForm) {
     contactForm.addEventListener("submit", async (event) => {
