@@ -1,84 +1,78 @@
+// Mobile menu toggle
 const navToggle = document.querySelector(".nav-toggle");
-const nav = document.querySelector(".site-nav");
-  
-if (navToggle && nav) {
+const siteNav = document.querySelector(".site-nav");
+
+if (navToggle) {
     navToggle.addEventListener("click", () => {
-        const isOpen = nav.classList.toggle("is-open");
-        navToggle.setAttribute("aria-expanded", String(isOpen));
+        siteNav.classList.toggle("is-open");
+        navToggle.setAttribute("aria-expanded", siteNav.classList.contains("is-open"));
     });
 
-    nav.querySelectorAll("a").forEach((link) => {
+    // Close menu when a link is clicked
+    document.querySelectorAll(".site-nav a").forEach(link => {
         link.addEventListener("click", () => {
-            nav.classList.remove("is-open");
+            siteNav.classList.remove("is-open");
             navToggle.setAttribute("aria-expanded", "false");
         });
-    });
-
-    window.addEventListener("scroll", () => {
-        if (nav.classList.contains("is-open")) {
-            nav.classList.remove("is-open");
-            navToggle.setAttribute("aria-expanded", "false");
-        }
     });
 }
 
-const revealItems = document.querySelectorAll(".reveal");
+// Reveal animations on scroll
+const revealElements = document.querySelectorAll(".reveal");
 
-const revealObserver = new IntersectionObserver(
-    (entries) => {
-        entries.forEach((entry) => {
+if (revealElements.length > 0) {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add("is-visible");
-                revealObserver.unobserve(entry.target);
             }
         });
-    },
-    { threshold: 0.18 }
-);
+    }, {
+        threshold: 0.1
+    });
 
-revealItems.forEach((item) => revealObserver.observe(item));
+    revealElements.forEach(el => observer.observe(el));
+}
 
+// Contact form handling
 const contactForm = document.querySelector(".contact form");
 
 if (contactForm) {
-    contactForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        const button = contactForm.querySelector("button");
-        const status = contactForm.querySelector(".form-status");
-        const originalText = button.textContent;
-        const formData = new FormData(contactForm);
-        const payload = Object.fromEntries(formData.entries());
+    contactForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-        button.textContent = "Sending...";
-        button.disabled = true;
-        status.textContent = "";
+        const formData = {
+            name: contactForm.name.value,
+            phone: contactForm.phone.value,
+            model: contactForm.model.value,
+            message: contactForm.message.value
+        };
+
+        const statusEl = contactForm.querySelector(".form-status");
 
         try {
+            statusEl.textContent = "Sending...";
+
             const response = await fetch("/api/requests", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData)
             });
 
             const result = await response.json();
 
-            if (!response.ok) {
-                throw new Error(result.message || "Please try again.");
+            if (response.ok) {
+                statusEl.textContent = "✓ Request sent successfully!";
+                contactForm.reset();
+                setTimeout(() => {
+                    statusEl.textContent = "";
+                }, 4000);
+            } else {
+                statusEl.textContent = "✗ " + (result.message || "Error sending request");
             }
-
-            status.textContent = "Request sent successfully. We will contact you soon.";
-            button.textContent = "Request Sent";
-            contactForm.reset();
         } catch (error) {
-            status.textContent = "Start the backend server first, then send again.";
-            button.textContent = originalText;
-        } finally {
-            setTimeout(() => {
-                button.textContent = originalText;
-                button.disabled = false;
-            }, 1800);
+            statusEl.textContent = "✗ Network error. Please try again.";
+            console.error("Form error:", error);
         }
     });
 }
