@@ -73,9 +73,9 @@ if (error) {
             button.textContent = "Request Sent";
             contactForm.reset();
         } catch (error) {
-            status.textContent = "Start the backend server first, then send again.";
-            button.textContent = originalText;
-        } finally {
+    console.log(error);
+    status.textContent = error.message;
+}finally {
             setTimeout(() => {
                 button.textContent = originalText;
                 button.disabled = false;
