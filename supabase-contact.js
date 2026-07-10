@@ -33,7 +33,7 @@ if (contactForm) {
 
         try {
             const { error } = await supabase
-                .from("customer_requests")
+                .from("customer_request")
                 .insert([payload]);
 
             if (error) {
