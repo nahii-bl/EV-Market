@@ -1,224 +1,58 @@
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
-const { URL } = require("url");
+const supabaseUrl = "https://ufzdbyrcflftpupqqzjg.supabase.co";
+const supabaseKey = "YOUR_PUBLISHABLE_KEY";
 
-const PORT = process.env.PORT || 8091;
-const ROOT = __dirname;
-const DATA_DIR = path.join(ROOT, "data");
-const REQUESTS_FILE = path.join(DATA_DIR, "requests.json");
+const supabase = window.supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+);
 
-const mimeTypes = {
-    ".html": "text/html; charset=utf-8",
-    ".css": "text/css; charset=utf-8",
-    ".js": "text/javascript; charset=utf-8",
-    ".SCRIPT": "text/javascript; charset=utf-8",
-    ".json": "application/json; charset=utf-8",
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".webp": "image/webp",
-    ".ico": "image/x-icon"
-};
 
-function ensureDataFile() {
-    if (!fs.existsSync(DATA_DIR)) {
-        fs.mkdirSync(DATA_DIR, { recursive: true });
-    }
+// Customer Request
+const contactForm = document.querySelector(".contact form");
 
-    if (!fs.existsSync(REQUESTS_FILE)) {
-        fs.writeFileSync(REQUESTS_FILE, "[]", "utf8");
-    }
-}
+if (contactForm) {
+    contactForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
 
-function readRequests() {
-    ensureDataFile();
-    try {
-        return JSON.parse(fs.readFileSync(REQUESTS_FILE, "utf8"));
-    } catch {
-        return [];
-    }
-}
+        const button = contactForm.querySelector("button");
+        const status = contactForm.querySelector(".form-status");
+        const originalText = button.textContent;
 
-function saveRequests(requests) {
-    ensureDataFile();
-    fs.writeFileSync(REQUESTS_FILE, JSON.stringify(requests, null, 2), "utf8");
-}
+        const formData = new FormData(contactForm);
 
-function sendJson(response, statusCode, data) {
-    response.writeHead(statusCode, {
-        "Content-Type": "application/json; charset=utf-8",
-        "Cache-Control": "no-store"
-    });
-    response.end(JSON.stringify(data));
-}
+        const payload = {
+            name: formData.get("name"),
+            phone: formData.get("phone"),
+            model: formData.get("model"),
+            message: formData.get("message")
+        };
 
-function readBody(request) {
-    return new Promise((resolve, reject) => {
-        let body = "";
+        button.textContent = "Sending...";
+        button.disabled = true;
+        status.textContent = "";
 
-        request.on("data", (chunk) => {
-            body += chunk;
-            if (body.length > 1_000_000) {
-                request.destroy();
-                reject(new Error("Request body is too large."));
-            }
-        });
-
-        request.on("end", () => resolve(body));
-        request.on("error", reject);
-    });
-}
-
-function serveFile(response, requestedPath) {
-    const cleanPath = requestedPath === "/" ? "/index.html" : decodeURIComponent(requestedPath);
-    const filePath = path.normalize(path.join(ROOT, cleanPath));
-
-    if (!filePath.startsWith(ROOT)) {
-        response.writeHead(403);
-        response.end("Forbidden");
-        return;
-    }
-
-    fs.readFile(filePath, (error, content) => {
-        if (error) {
-            response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
-            response.end("Page not found");
-            return;
-        }
-
-        const ext = path.extname(filePath);
-        response.writeHead(200, {
-            "Content-Type": mimeTypes[ext] || "application/octet-stream"
-        });
-        response.end(content);
-    });
-}
-
-function cleanText(value) {
-    return String(value || "").trim().slice(0, 300);
-}
-
-const server = http.createServer(async (request, response) => {
-    const url = new URL(request.url, `http://${request.headers.host}`);
-
-    if (request.method === "GET" && url.pathname === "/api/health") {
-        sendJson(response, 200, { ok: true, service: "Mikey EV backend" });
-        return;
-    }
-
-    if (request.method === "GET" && url.pathname === "/api/requests") {
-        sendJson(response, 200, readRequests());
-        return;
-    }
-
-    if (request.method === "POST" && url.pathname === "/api/requests") {
         try {
-            const body = await readBody(request);
-            const data = JSON.parse(body || "{}");
+            const { error } = await supabase
+                .from("customer_requests")
+                .insert([payload]);
 
-            const lead = {
-                id: Date.now().toString(),
-                createdAt: new Date().toISOString(),
-                name: cleanText(data.name),
-                phone: cleanText(data.phone),
-                model: cleanText(data.model),
-                message: cleanText(data.message),
-                status: "pending" // Added status key here tracking active records
-            };
-
-            if (!lead.name || !lead.phone || !lead.model) {
-                sendJson(response, 400, {
-                    ok: false,
-                    message: "Please fill your name, phone number, and interested model."
-                });
-                return;
+            if (error) {
+                throw error;
             }
 
-            const requests = readRequests();
-            requests.unshift(lead);
-            saveRequests(requests);
+            status.textContent = "Request sent successfully. We will contact you soon.";
+            button.textContent = "Request Sent";
+            contactForm.reset();
 
-            sendJson(response, 201, {
-                ok: true,
-                message: "Request saved successfully.",
-                request: lead
-            });
-        } catch {
-            sendJson(response, 400, {
-                ok: false,
-                message: "Could not save the request."
-            });
-        }
-        return;
-    }
-
-    // NEW ENDPOINT: POST rule to change status to accepted
-    if (request.method === "POST" && url.pathname.startsWith("/api/requests/") && url.pathname.endsWith("/accept")) {
-        try {
-            // Extracts the ID out from the URL path: /api/requests/{id}/accept
-            const segments = url.pathname.split("/");
-            const requestId = segments[segments.length - 2]; 
-            
-            const requests = readRequests();
-            const targetRequest = requests.find(req => req.id === requestId);
-
-            if (!targetRequest) {
-                sendJson(response, 404, { ok: false, message: "Request not found." });
-                return;
-            }
-
-            // Updates item target state property values dynamically
-            targetRequest.status = "accepted";
-            saveRequests(requests);
-
-            sendJson(response, 200, {
-                ok: true,
-                message: "Request accepted successfully.",
-                request: targetRequest
-            });
         } catch (error) {
-            sendJson(response, 500, { ok: false, message: "Could not accept the request." });
+            console.error(error);
+            status.textContent = "Error: " + error.message;
+
+        } finally {
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.disabled = false;
+            }, 1800);
         }
-        return;
-    }
-
-    // DELETE endpoint to remove a request by ID
-    if (request.method === "DELETE" && url.pathname.startsWith("/api/requests/")) {
-        try {
-            const requestId = url.pathname.split("/").pop();
-            const requests = readRequests();
-            const initialLength = requests.length;
-            
-            const updatedRequests = requests.filter(req => req.id !== requestId);
-            
-            if (updatedRequests.length === initialLength) {
-                sendJson(response, 404, {
-                    ok: false,
-                    message: "Request not found."
-                });
-                return;
-            }
-            
-            saveRequests(updatedRequests);
-            
-            sendJson(response, 200, {
-                ok: true,
-                message: "Request deleted successfully."
-            });
-        } catch {
-            sendJson(response, 500, {
-                ok: false,
-                message: "Could not delete the request."
-            });
-        }
-        return;
-    }
-
-    serveFile(response, url.pathname);
-});
-
-server.listen(PORT, () => {
-    console.log(`Mikey EV website is running at http://localhost:${PORT}`);
-    console.log(`Admin requests page: http://localhost:${PORT}/admin.html`);
-});
+    });
+}
