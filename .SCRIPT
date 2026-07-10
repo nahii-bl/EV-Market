@@ -72,8 +72,8 @@ if (error) {
                 button.textContent = originalText;
                 button.disabled = false;
             }, 1800);
-        }const supabaseUrl = "YOUR_PROJECT_URL";
-const supabaseKey = "YOUR_PUBLISHABLE_KEY";
+        }const supabaseUrl = "https://ufzdbyrcflftpupqqzjg.supabase.co/rest/v1/";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmemRieXJjZmxmdHB1cHFxempnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2Mzg0MTMsImV4cCI6MjA5OTIxNDQxM30.CCA-jK5orZDTtNZS2S6NT5Ids2fNUA6a5R90k1FkYm0";
 
 const supabase = window.supabase.createClient(
   supabaseUrl,
