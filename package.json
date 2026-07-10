@@ -7,5 +7,7 @@
     "start": "node server.js",
     "build": "echo build complete"
   },
-  "dependencies": {}
-}
+ "dependencies": {
+    "express": "^4.19.2"
+  }
+
