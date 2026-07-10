@@ -1,4 +1,8 @@
-const supabaseUrl = "https://qgfxojafkywfhpkvymwv.supabase.co/rest/v1/";
+// ==========================================
+// 1. SUPABASE CLIENT INITIALIZATION
+// ==========================================
+// FIXED: Removed "/rest/v1/" from the end of the URL string
+const supabaseUrl = "https://qgfxojafkywfhpkvymwv.supabase.co";
 const supabaseKey = "sb_publishable_fbk1dk-QWn2rhhCLzqOxlw_c9tsbQ3p";
 
 const supabase = window.supabase.createClient(
@@ -6,8 +10,9 @@ const supabase = window.supabase.createClient(
     supabaseKey
 );
 
-
-// Customer Request
+// ==========================================
+// 2. CUSTOMER REQUEST FORM HANDLER
+// ==========================================
 const contactForm = document.querySelector(".contact form");
 
 if (contactForm) {
