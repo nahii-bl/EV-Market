@@ -6,16 +6,15 @@ const supabaseKey = 'sb_publishable_8169Y0pYnw0LtF206Ra9OA_QEoTU5Cc';
 
 let supabase;
 
-// Mobile/Production Fix: Safely ensure the CDN library has loaded before building client
+// Mobile Stability: Verify the Supabase global window library loads prior to instantiation
 if (window.supabase) {
     supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 } else {
     console.error("Supabase CDN library not detected! Submissions will fail.");
-    // Fallback UI warning if the database connection isn't initialized
-    const fallbackStatus = document.querySelector(".form-status");
-    if (fallbackStatus) {
-        fallbackStatus.style.color = "red";
-        fallbackStatus.textContent = "✗ Connection error. Please reload the page.";
+    const loadStatus = document.querySelector(".form-status");
+    if (loadStatus) {
+        loadStatus.style.color = "#ff4d4d";
+        loadStatus.textContent = "✗ Connection error. Please reload the page.";
     }
 }
 
@@ -27,11 +26,11 @@ const siteNav = document.querySelector(".site-nav");
 
 if (navToggle && siteNav) {
     navToggle.addEventListener("click", () => {
-        siteNav.classList.toggle("is-open");
-        navToggle.setAttribute("aria-expanded", siteNav.classList.contains("is-open"));
+        const isOpen = siteNav.classList.toggle("is-open");
+        navToggle.setAttribute("aria-expanded", isOpen);
     });
 
-    // Close menu when a link is clicked
+    // Close menu automatically when any local page link is tapped
     document.querySelectorAll(".site-nav a").forEach(link => {
         link.addEventListener("click", () => {
             siteNav.classList.remove("is-open");
@@ -60,7 +59,7 @@ if (revealElements.length > 0) {
 }
 
 // ==========================================
-// 4. CONTACT FORM HANDLING (SUPABASE FIX)
+// 4. CONTACT FORM HANDLING
 // ==========================================
 const contactForm = document.querySelector(".contact form");
 
@@ -70,21 +69,21 @@ if (contactForm) {
 
         const statusEl = contactForm.querySelector(".form-status");
         
-        // Safety checkpoint if Supabase didn't initialize
+        // Critical safeguard if CDN fails to initialize
         if (!supabase) {
             if (statusEl) {
-                statusEl.style.color = "red";
-                statusEl.textContent = "✗ Database configuration error. Refresh and try again.";
+                statusEl.style.color = "#ff4d4d";
+                statusEl.textContent = "✗ Connection down. Refresh and try again.";
             }
             return;
         }
 
-        // Gather form data fields safely
+        // Clean target values extracted safely from inputs match your layout names
         const formData = {
-            name: contactForm.name.value,
-            phone: contactForm.phone.value,
+            name: contactForm.name.value.trim(),
+            phone: contactForm.phone.value.trim(),
             model: contactForm.model.value,
-            message: contactForm.message.value
+            message: contactForm.message.value.trim()
         };
 
         const button = contactForm.querySelector("button");
@@ -92,7 +91,7 @@ if (contactForm) {
 
         try {
             if (statusEl) {
-                statusEl.style.color = "orange";
+                statusEl.style.color = "#ffa500";
                 statusEl.textContent = "Sending...";
             }
             if (button) {
@@ -100,18 +99,16 @@ if (contactForm) {
                 button.textContent = "Sending...";
             }
 
-            // CRITICAL FIX: Direct link to Supabase table bypassing local backend routing restrictions
+            // Write direct payload bypass to Supabase table schema
             const { error } = await supabase
                 .from("customer_request")
                 .insert([formData]);
 
-            if (error) {
-                throw error;
-            }
+            if (error) throw error;
 
-            // Success configuration
+            // Successful feedback indicators
             if (statusEl) {
-                statusEl.style.color = "green";
+                statusEl.style.color = "#2ecc71";
                 statusEl.textContent = "✓ Request sent successfully!";
             }
             if (button) {
@@ -125,13 +122,13 @@ if (contactForm) {
             }, 4000);
 
         } catch (error) {
-            console.error("Form error:", error);
+            console.error("Form transmission error:", error);
             if (statusEl) {
-                statusEl.style.color = "red";
+                statusEl.style.color = "#ff4d4d";
                 statusEl.textContent = "✗ " + (error.message || "Error sending request.");
             }
         } finally {
-            // Restore button properties after timeline lapse
+            // Re-enable interactive capabilities
             setTimeout(() => {
                 if (button) {
                     button.disabled = false;
