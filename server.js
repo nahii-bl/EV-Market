@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3000;
 // MUST ADD THIS: Allows your server to read incoming JSON form data
 app.use(express.json());
 
-// Serve static files
+// Serve static files 
 app.use(express.static(path.join(__dirname)));
 
 app.get("/", (req, res) => {
