@@ -1,13 +1,3 @@
-const supabaseUrl = "https://ufzdbyrcflftpupqqzjg.supabase.co";
-const supabaseKey = "YOUR_PUBLISHABLE_KEY";
-
-const supabase = window.supabase.createClient(
-    supabaseUrl,
-    supabaseKey
-);
-
-
-// Customer Request
 const contactForm = document.querySelector(".contact form");
 
 if (contactForm) {
@@ -46,7 +36,7 @@ if (contactForm) {
 
         } catch (error) {
             console.error(error);
-            status.textContent = "Error: " + error.message;
+            status.textContent = error.message;
 
         } finally {
             setTimeout(() => {
