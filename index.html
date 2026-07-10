@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-   <meta name="google-site-verification" content="kHPPjo-rstTL3vMKlvPKaKhjkIUxuuuh5Axx37rtMEc" />
+    <meta name="google-site-verification" content="kHPPjo-rstTL3vMKlvPKaKhjkIUxuuuh5Axx37rtMEc" />
 </head>
 <body>
     <header class="site-header">
@@ -273,8 +273,18 @@
             <a href="https://www.tiktok.com/@lilmike23j?_r=1&_t=ZS-97smknGAGFY" target="_blank" rel="noopener">TikTok</a>
         </div>
     </footer>
+    
+    <!-- Supabase Setup -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const { createClient } = supabase;
+        const supabaseUrl = 'https://ufzdbyrchflftpupqqzmjg.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmemRieXJjZmxmdHB1cHFxempnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MzgsInV4cCI6MjA5OTIxNDQxM30.CCA-jK5orZDTtNZS2S6NT5Ids2fNUA6a5R90k1FkYm0';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+    </script>
+
+    <!-- Main Scripts -->
+    <script src="script.js"></script>
     <script src="1script.js"></script>
-   
 </body>
 </html>
