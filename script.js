@@ -69,18 +69,7 @@ const { error } = await supabase
 if (error) {
     throw error;
 }
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.message || "Please try again.");
-            }
+              
 
             status.textContent = "Request sent successfully. We will contact you soon.";
             button.textContent = "Request Sent";
