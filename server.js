@@ -1,35 +1,16 @@
-const navToggle = document.querySelector(".nav-toggle");
-const nav = document.querySelector(".site-nav");
+const express = require("express");
+const path = require("path");
 
-if (navToggle && nav) {
-    navToggle.addEventListener("click", () => {
-        const isOpen = nav.classList.toggle("is-open");
-        navToggle.setAttribute("aria-expanded", String(isOpen));
-    });
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-    nav.querySelectorAll("a").forEach((link) => {
-        link.addEventListener("click", () => {
-            nav.classList.remove("is-open");
-            navToggle.setAttribute("aria-expanded", "false");
-        });
-    });
+// Serve static files
+app.use(express.static(path.join(__dirname)));
 
-    window.addEventListener("scroll", () => {
-        if (nav.classList.contains("is-open")) {
-            nav.classList.remove("is-open");
-            navToggle.setAttribute("aria-expanded", "false");
-        }
-    });
-}
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "index.html"));
+});
 
-const revealItems = document.querySelectorAll(".reveal");
-
-const revealObserver = new IntersectionObserver(
-    (entries) => {
-        entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add("is-visible");
-                revealObserver.unobserve(entry.target);
-            }
-        });
-    },
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
