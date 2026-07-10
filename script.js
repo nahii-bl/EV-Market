@@ -1,3 +1,11 @@
+const supabaseUrl = "https://ufzdbyrcflftpupqqzjg.supabase.co";
+
+const supabaseKey = "YOUR_PUBLISHABLE_KEY";
+
+const supabase = window.supabase.createClient(
+  supabaseUrl,
+  supabaseKey
+);
 const navToggle = document.querySelector(".nav-toggle");
 const nav = document.querySelector(".site-nav");
 
@@ -54,14 +62,13 @@ if (contactForm) {
         status.textContent = "";
 
         try {
-           const supabaseUrl = "https://ufzdbyrcflftpupqqzjg.supabase.co";
+const { error } = await supabase
+    .from("customer_requests")
+    .insert([payload]);
 
-const supabaseKey = "sb_publishable_8169Y0pYnw0LtF206Ra9OA_QEoTU5Cc";
-
-const supabase = window.supabase.createClient(
-  supabaseUrl,
-  supabaseKey
-);
+if (error) {
+    throw error;
+}
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
