@@ -1,8 +1,31 @@
-// Mobile menu toggle
+// ==========================================
+// 1. SUPABASE CLIENT INITIALIZATION
+// ==========================================
+const supabaseUrl = 'https://ufzdbyrcflftpupqqzjg.supabase.co';
+const supabaseKey = 'sb_publishable_8169Y0pYnw0LtF206Ra9OA_QEoTU5Cc';
+
+let supabase;
+
+// Mobile/Production Fix: Safely ensure the CDN library has loaded before building client
+if (window.supabase) {
+    supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+} else {
+    console.error("Supabase CDN library not detected! Submissions will fail.");
+    // Fallback UI warning if the database connection isn't initialized
+    const fallbackStatus = document.querySelector(".form-status");
+    if (fallbackStatus) {
+        fallbackStatus.style.color = "red";
+        fallbackStatus.textContent = "✗ Connection error. Please reload the page.";
+    }
+}
+
+// ==========================================
+// 2. MOBILE MENU TOGGLE
+// ==========================================
 const navToggle = document.querySelector(".nav-toggle");
 const siteNav = document.querySelector(".site-nav");
 
-if (navToggle) {
+if (navToggle && siteNav) {
     navToggle.addEventListener("click", () => {
         siteNav.classList.toggle("is-open");
         navToggle.setAttribute("aria-expanded", siteNav.classList.contains("is-open"));
@@ -17,7 +40,9 @@ if (navToggle) {
     });
 }
 
-// Reveal animations on scroll
+// ==========================================
+// 3. REVEAL ANIMATIONS ON SCROLL
+// ==========================================
 const revealElements = document.querySelectorAll(".reveal");
 
 if (revealElements.length > 0) {
@@ -34,13 +59,27 @@ if (revealElements.length > 0) {
     revealElements.forEach(el => observer.observe(el));
 }
 
-// Contact form handling
+// ==========================================
+// 4. CONTACT FORM HANDLING (SUPABASE FIX)
+// ==========================================
 const contactForm = document.querySelector(".contact form");
 
 if (contactForm) {
     contactForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
+        const statusEl = contactForm.querySelector(".form-status");
+        
+        // Safety checkpoint if Supabase didn't initialize
+        if (!supabase) {
+            if (statusEl) {
+                statusEl.style.color = "red";
+                statusEl.textContent = "✗ Database configuration error. Refresh and try again.";
+            }
+            return;
+        }
+
+        // Gather form data fields safely
         const formData = {
             name: contactForm.name.value,
             phone: contactForm.phone.value,
@@ -48,31 +87,57 @@ if (contactForm) {
             message: contactForm.message.value
         };
 
-        const statusEl = contactForm.querySelector(".form-status");
+        const button = contactForm.querySelector("button");
+        const originalText = button ? button.textContent : "Send Request";
 
         try {
-            statusEl.textContent = "Sending...";
-
-            const response = await fetch("/api/requests", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData)
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                statusEl.textContent = "✓ Request sent successfully!";
-                contactForm.reset();
-                setTimeout(() => {
-                    statusEl.textContent = "";
-                }, 4000);
-            } else {
-                statusEl.textContent = "✗ " + (result.message || "Error sending request");
+            if (statusEl) {
+                statusEl.style.color = "orange";
+                statusEl.textContent = "Sending...";
             }
+            if (button) {
+                button.disabled = true;
+                button.textContent = "Sending...";
+            }
+
+            // CRITICAL FIX: Direct link to Supabase table bypassing local backend routing restrictions
+            const { error } = await supabase
+                .from("customer_request")
+                .insert([formData]);
+
+            if (error) {
+                throw error;
+            }
+
+            // Success configuration
+            if (statusEl) {
+                statusEl.style.color = "green";
+                statusEl.textContent = "✓ Request sent successfully!";
+            }
+            if (button) {
+                button.textContent = "Sent!";
+            }
+            
+            contactForm.reset();
+
+            setTimeout(() => {
+                if (statusEl) statusEl.textContent = "";
+            }, 4000);
+
         } catch (error) {
-            statusEl.textContent = "✗ Network error. Please try again.";
             console.error("Form error:", error);
+            if (statusEl) {
+                statusEl.style.color = "red";
+                statusEl.textContent = "✗ " + (error.message || "Error sending request.");
+            }
+        } finally {
+            // Restore button properties after timeline lapse
+            setTimeout(() => {
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = originalText;
+                }
+            }, 1800);
         }
     });
 }
