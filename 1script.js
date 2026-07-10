@@ -1,6 +1,4 @@
 
-);
-
 
 // Customer Request 
 const contactForm = document.querySelector(".contact form");
